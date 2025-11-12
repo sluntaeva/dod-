@@ -21,13 +21,13 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     logger.info("User %s started the bot.", user.first_name)
 
     keyboard = [
-        [InlineKeyboardButton("Play My Awesome Game!", callback_data="play_game")],
-        [InlineKeyboardButton("High Scores", callback_data="show_scores")],
+        [InlineKeyboardButton("Играй в мою потрясающую игру!", callback_data="play_game")],
+        [InlineKeyboardButton("Высокие баллы", callback_data="show_scores")],
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
 
     await update.message.reply_text(
-        f"Hello {user.first_name}! Press the button to play the game.",
+        f"Привет! {user.first_name}! Нажмите кнопку, чтобы начать игру..",
         reply_markup=reply_markup,
     )
 
