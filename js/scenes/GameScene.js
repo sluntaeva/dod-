@@ -80,23 +80,33 @@ class GameScene extends Phaser.Scene {
         this.highestPlatformY = -500;
     }
 
-    managePlatforms() {
-        // Динамическая генерация
-        if (this.playerSprite.y < this.highestPlatformY + 600) {
-            this.generateAdditionalPlatforms(this.highestPlatformY);
+managePlatforms() {
+    // Динамическая генерация
+    if (this.playerSprite.y < this.highestPlatformY + 600) {
+        this.generateAdditionalPlatforms(this.highestPlatformY);
+    }
+
+    // Удаление старых платформ
+    const cameraBottom = this.cameras.main.scrollY + this.cameras.main.height;
+
+    this.platforms = this.platforms.filter(platform => {
+        // Проверяем, что платформа существует и не уничтожена
+        if (!platform || !platform.sprite || !platform.sprite.body) return false;
+
+        if (platform.sprite.y > cameraBottom + 300) {
+            // Сначала удаляем физическое тело, потом спрайт
+            if (platform.sprite.body) {
+                this.matter.world.remove(platform.sprite.body);
+            }
+
+            platform.sprite.destroy();
+            return false;
         }
 
-        // Удаление старых платформ
-        const cameraBottom = this.cameras.main.scrollY + this.cameras.main.height;
-        this.platforms = this.platforms.filter(platform => {
-            if (platform.sprite.y > cameraBottom + 300) {
-                platform.sprite.destroy();
-                this.matter.world.remove(platform.body);
-                return false;
-            }
-            return true;
-        });
-    }
+        return true;
+    });
+}
+
 
     generateAdditionalPlatforms(startY) {
         let y = startY;
