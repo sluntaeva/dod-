@@ -16,7 +16,8 @@ class GameScene extends Phaser.Scene {
         this.highestPlatformY = 800;
 
         // Настройка мира
-        this.matter.world.setBounds(0, 0, 2000, 10000); // Увеличим высоту мира
+        this.matter.world.setBounds(0, 0, 2000, 10000, 64, false, true, true, false);
+
 
         // Создание игрока
         const playerStartX = 150;
@@ -189,12 +190,13 @@ class GameScene extends Phaser.Scene {
     }
 
     checkDeathCondition() {
-        if (this.playerSprite.y > this.cameras.main.scrollY + this.cameras.main.height + 200) {
-            this.death();
+    if (this.playerSprite.y > 9500) {
+        this.death();
         }
     }
 
     death() {
+        console.log('death() вызвана');
         if (this.isDead) return;
         this.isDead = true;
 
