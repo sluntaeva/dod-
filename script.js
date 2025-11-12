@@ -100,7 +100,8 @@ class MainScene extends Phaser.Scene {
         this.input.keyboard.on('keydown', (event) => {
             if (event.code === 'ArrowLeft' || event.code === 'KeyA') this.leftPressed = true;
             if (event.code === 'ArrowRight' || event.code === 'KeyD') this.rightPressed = true;
-            if (event.code === 'ArrowUp' || event.code === 'Space' || eventcode === 'KeyW') this.jump();
+            if (event.code === 'ArrowUp' || event.code === 'Space' || event.code === 'KeyW') this.jump();
+
         });
         
         this.input.keyboard.on('keyup', (event) => {
@@ -118,41 +119,39 @@ class MainScene extends Phaser.Scene {
         localStorage.setItem('playerColor', this.playerColor.toString());
     }
 
-    generateAdditionalPlatforms() {
-        for (let y = 100; y > -2000; y -= 150 + Math.random() * 100) {
-            const x = 100 + Math.random() * 1800;
-            this.addPlatform(x, y);
-            
-            if (Math.random() > 0.5) {
-                const x2 = 100 + Math.random() * 1800;
-                if (Math.abs(x2 - x) > 250) {
-                    this.addPlatform(x2, y + (Math.random() - 0.5) * 50);
-                }
-            }
-        }
+generateAdditionalPlatforms(startY) {
+    let y = startY;
+    const endY = startY - 1000; // Генерируем порцию платформ на 1000px вверх
+
+    for (; y > endY; y -= 150 + Math.random() * 100) {
+        const x = 100 + Math.random() * (this.matter.world.bounds.width - 200);
+        this.addPlatform(x, y);
     }
+    this.highestPlatformY = y; // Обновляем самую высокую точку
+}
 
     findPlatformByBody(body) {
         return this.platforms.find(platform => platform.body === body);
     }
 
-    isPlayerOnAnyPlatform() {
-        const playerY = this.playerSprite.y;
-        const playerX = this.playerSprite.x;
-        
-        for (const platform of this.platforms) {
-            const platformTop = platform.sprite.y - 15;
-            const platformBottom = platform.sprite.y + 15;
-            const platformLeft = platform.sprite.x - 100;
-            const platformRight = platform.sprite.x + 100;
-            
-            if (playerY >= platformTop - 35 && playerY <= platformBottom + 35 &&
-                playerX >= platformLeft && playerX <= platformRight) {
-                return true;
-            }
+isPlayerOnAnyPlatform() {
+    const playerBounds = this.player.body.bounds;
+    // Создаем небольшой сенсор прямо под игроком
+    const sensor = Phaser.Physics.Matter.Matter.Bodies.rectangle(
+        (playerBounds.min.x + playerBounds.max.x) / 2, // центр X игрока
+        playerBounds.max.y + 5, // чуть ниже ног игрока
+        playerBounds.max.x - playerBounds.min.x, // ширина игрока
+        10, // высота сенсора
+        { isSensor: true }
+    );
+
+    for (const platform of this.platforms) {
+        if (Phaser.Physics.Matter.Matter.SAT.collides(sensor, platform.body).collided) {
+            return true;
         }
-        return false;
     }
+    return false;
+}
 
     addPlatform(x, y) {
         const platformId = this.platformIdCounter++;
@@ -259,6 +258,19 @@ class MainScene extends Phaser.Scene {
             this.addScore(50);
             this.cameras.main.flash(200, 255, 255, 100);
         }
+            if (this.playerSprite.y < this.highestPlatformY + 400) { // 400 - запас
+        this.generateAdditionalPlatforms(this.highestPlatformY - 150);
+    }    const cameraBottom = this.cameras.main.scrollY + this.cameras.main.height;
+
+    this.platforms = this.platforms.filter(platform => {
+        if (platform.sprite.y > cameraBottom + 300) { // 300 - запас
+            platform.sprite.destroy();
+            // Важно: тело из Matter.js нужно удалять отдельно
+            this.matter.world.remove(platform.body);
+            return false; // Удаляем из массива
+        }
+        return true; // Оставляем в массиве
+    });
     }
 
     death() {
