@@ -3,9 +3,9 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes
 
 # Replace with your actual Bot Token
-BOT_TOKEN = "YOUR_BOT_TOKEN"
+BOT_TOKEN = "8394269495:AAGph6h2PMujf3m7fSrZf72erBzxlut-_Uw"
 # Replace with the short name of the game you registered with @BotFather
-GAME_SHORT_NAME = "your_game_short_name"
+GAME_SHORT_NAME = "jelly_jumper"
 
 # Enable logging
 logging.basicConfig(
