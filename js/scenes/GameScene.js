@@ -108,15 +108,24 @@ managePlatforms() {
 }
 
 
-    generateAdditionalPlatforms(startY) {
-        let y = startY;
-        const endY = startY - 1000;
-        for (; y > endY; y -= 150 + Math.random() * 100) {
-            const x = 100 + Math.random() * 1800;
-            this.addPlatform(x, y);
-        }
-        this.highestPlatformY = y;
+generateAdditionalPlatforms() {
+    const platformSpacingMin = 80;   // минимальное расстояние между платформами
+    const platformSpacingMax = 90;  // максимальное расстояние
+    const screenWidth = this.scale.width;
+
+    for (let i = 0; i < 4; i++) {
+        const gap = Phaser.Math.Between(platformSpacingMin, platformSpacingMax);
+        const newY = this.highestPlatformY - gap;
+        const newX = Phaser.Math.Between(100, screenWidth - 100);
+
+        const platform = this.createPlatform(newX, newY);
+
+        this.platforms.push(platform);
+        this.highestPlatformY = newY;
     }
+}
+
+
 
     addPlatform(x, y) {
         const platformId = this.platformIdCounter++;
