@@ -1,7 +1,11 @@
 import logging
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes
-
+from telegram import (
+    Update,
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
+    WebAppInfo,      # <── ОБЯЗАТЕЛЬНО добавь это!
+)
+from telegram.ext import Application, CommandHandler, ContextTypes
 # Replace with your actual Bot Token
 BOT_TOKEN = "8394269495:AAGph6h2PMujf3m7fSrZf72erBzxlut-_Uw"
 # Replace with the short name of the game you registered with @BotFather

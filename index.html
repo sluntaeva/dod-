@@ -39,6 +39,13 @@
     </div>
     <button id="closeInventoryBtn">Закрыть</button>
 </div>
+<div id="death-screen" class="hidden">
+  <div class="death-content">
+    <h2>Вы проиграли 😢</h2>
+    <p>Ваш счёт: <span id="finalScoreValue">0</span></p>
+    <button id="restartBtn">Начать заново</button>
+  </div>
+</div>
  <!-- Подключаем наш файл со скриптом (ВАЖНО: в самом конце body ) -->
     <script src="https://cdn.jsdelivr.net/npm/phaser@3.55.2/dist/phaser.min.js"></script>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>

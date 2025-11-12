@@ -26,7 +26,8 @@ class GameScene extends Phaser.Scene {
         this.player = this.matter.add.gameObject(this.playerSprite, {
             restitution: 0.2,
             friction: 0.05,
-            label: 'player'
+            label: 'player',
+            inertia: Infinity  // Prevents rotation/deformation
         });
 
         // Начальные платформы
@@ -195,46 +196,72 @@ class GameScene extends Phaser.Scene {
         }
     }
 
-    death() {
-        console.log('death() вызвана');
-        if (this.isDead) return;
-        this.isDead = true;
+death() {
+    if (this.isDead) return;
+    this.isDead = true;
+    console.log("death() вызвана"); // Проверка
 
-        // Скрыть UI перед переходом
-        const ui = this.scene.get('UIScene');
-        if (ui && ui.hideUI) ui.hideUI();
+    // Прозрачность игрока (если поддерживается)
+    if (this.player && this.player.setAlpha) {
+        this.player.setAlpha(0.3);
+    }
 
-        // Сохранение рекорда
-        this.submitScoreToTelegram(this.score);
-        const bestScore = parseInt(localStorage.getItem('bestScore') || '0');
-        if (this.score > bestScore) {
-            localStorage.setItem('bestScore', this.score.toString());
-            this.events.emit('newBestScore', this.score);
+    // Остановка физики
+    if (this.matter && this.matter.world) {
+        this.matter.world.enabled = false; // вместо pause(), надёжнее
+    }
+
+    // DOM элементы
+    const deathScreen = document.getElementById('death-screen');
+    const finalScoreValue = document.getElementById('finalScoreValue');
+    const restartBtn = document.getElementById('restartBtn');
+
+    if (!deathScreen || !finalScoreValue || !restartBtn) {
+        console.warn("⚠️ death-screen элементы не найдены!");
+        return;
+    }
+
+    // Обновляем счёт
+    finalScoreValue.textContent = this.score || 0;
+
+    // Показываем экран смерти
+    deathScreen.classList.remove('hidden');
+    console.log("death-screen показан");
+
+    // Слушатель кнопки "Начать заново"
+    restartBtn.onclick = () => {
+        console.log("Нажата кнопка 'Начать заново'");
+        deathScreen.classList.add('hidden');
+        if (this.player && this.player.setAlpha) {
+            this.player.setAlpha(1);
+        }
+        this.isDead = false;
+
+        // Возвращаем физику
+        if (this.matter && this.matter.world) {
+            this.matter.world.enabled = true;
         }
 
-        this.tweens.add({
-            targets: this.playerSprite,
-            alpha: 0,
-            duration: 500,
-            onComplete: () => {
-                if (this.scene.isActive('UIScene')) {
-                    this.scene.stop('UIScene');
-                }
-                this.scene.start('MenuScene');
-            }
-        });
+        // Перезапуск сцены
+        this.scene.restart();
+    };
+}
+
+
+
+submitScoreToTelegram() {
+    const score = this.score;
+
+    if (window.Telegram?.WebApp) {
+        Telegram.WebApp.sendData(JSON.stringify({ score }));
+        // НЕ закрываем окно Telegram
     }
-        submitScoreToTelegram(score) {
-        if (typeof TelegramGameProxy !== 'undefined') {
-            // The score is sent to the bot. The bot will receive a CallbackQuery
-            // with the score in the callback_data.
-            // The third parameter is the payload, which we use to pass the score to the bot.
-            TelegramGameProxy.shareScore(score, function () {
-                console.log('Score submitted to Telegram successfully!');
-            }, "score:" + score);
-        } else {
-            console.warn('Telegram Game SDK not loaded. Score not submitted.');
-        }
-    }
+
+    // Перезапуск игры после задержки
+    this.time.delayedCall(1000, () => {
+        this.scene.restart();
+    });
+}
+
 
 }

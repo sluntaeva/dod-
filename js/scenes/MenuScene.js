@@ -5,6 +5,7 @@
     }
 
     create() {
+        this.cameras.main.setBackgroundColor('#000000');
         // при заходе в меню останавливаем и прячем UI
         const ui = this.scene.get('UIScene');
         if (ui) {
@@ -22,7 +23,27 @@
         const closeInventoryBtn = document.getElementById('closeInventoryBtn');
         const skinChoiceButtons = document.querySelectorAll('.skin-choice');
         const bestScoreEl = document.getElementById('bestScoreValue');
+const deathScreen = document.getElementById('death-screen');
+const restartBtn = document.getElementById('restartBtn');
+const finalScoreValue = document.getElementById('finalScoreValue');
 
+// Проверяем, есть ли флаг "смерти"
+const lastScore = localStorage.getItem('lastScore');
+if (lastScore !== null) {
+    // Показываем экран смерти
+    deathScreen.classList.remove('hidden');
+    finalScoreValue.textContent = lastScore;
+    localStorage.removeItem('lastScore'); // чтобы не показывалось снова
+} else {
+    deathScreen.classList.add('hidden');
+}
+
+// Кнопка "Начать заново"
+restartBtn.onclick = () => {
+    deathScreen.classList.add('hidden');
+    this.scene.start('GameScene');
+    this.scene.launch('UIScene');
+};
         // Показываем главное меню
         this.menuContainer.classList.remove('hidden');
         this.skinInventory.classList.add('hidden');
