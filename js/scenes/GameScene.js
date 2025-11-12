@@ -203,6 +203,7 @@ class GameScene extends Phaser.Scene {
         if (ui && ui.hideUI) ui.hideUI();
 
         // Сохранение рекорда
+        this.submitScoreToTelegram(this.score);
         const bestScore = parseInt(localStorage.getItem('bestScore') || '0');
         if (this.score > bestScore) {
             localStorage.setItem('bestScore', this.score.toString());
@@ -221,4 +222,17 @@ class GameScene extends Phaser.Scene {
             }
         });
     }
+        submitScoreToTelegram(score) {
+        if (typeof TelegramGameProxy !== 'undefined') {
+            // The score is sent to the bot. The bot will receive a CallbackQuery
+            // with the score in the callback_data.
+            // The third parameter is the payload, which we use to pass the score to the bot.
+            TelegramGameProxy.shareScore(score, function () {
+                console.log('Score submitted to Telegram successfully!');
+            }, "score:" + score);
+        } else {
+            console.warn('Telegram Game SDK not loaded. Score not submitted.');
+        }
+    }
+
 }
