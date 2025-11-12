@@ -48,6 +48,15 @@ class GameScene extends Phaser.Scene {
 
         // Сообщаем UI сцене, что игра началась
         this.events.emit('updateScore', this.score);
+
+        // Запустить/поднять UIScene (если ещё не запущена)
+        if (!this.scene.isActive('UIScene')) {
+            this.scene.launch('UIScene');
+        } else {
+            // Если уже запущена — показать UI
+            const ui = this.scene.get('UIScene');
+            if (ui && ui.showUI) ui.showUI();
+        }
     }
 
     update() {
@@ -189,6 +198,10 @@ class GameScene extends Phaser.Scene {
         if (this.isDead) return;
         this.isDead = true;
 
+        // Скрыть UI перед переходом
+        const ui = this.scene.get('UIScene');
+        if (ui && ui.hideUI) ui.hideUI();
+
         // Сохранение рекорда
         const bestScore = parseInt(localStorage.getItem('bestScore') || '0');
         if (this.score > bestScore) {
@@ -201,7 +214,9 @@ class GameScene extends Phaser.Scene {
             alpha: 0,
             duration: 500,
             onComplete: () => {
-                this.scene.stop('UIScene');
+                if (this.scene.isActive('UIScene')) {
+                    this.scene.stop('UIScene');
+                }
                 this.scene.start('MenuScene');
             }
         });

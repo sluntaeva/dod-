@@ -58,22 +58,23 @@ window.addEventListener('DOMContentLoaded', () => {
 
     // Логика старта игры
     startButton.onclick = () => {
-        // Скрываем меню и показываем игровой интерфейс
+        // Скрываем меню
         menuContainer.classList.add('hidden');
         skinInventory.classList.add('hidden'); // На всякий случай
-        scoreContainer.classList.remove('hidden');
-        controlsContainer.classList.remove('hidden');
 
-        // Вот теперь ЗАПУСКАЕМ игровые сцены
+        // Просто запускаем сцены, они сами управляют UI
         game.scene.start('GameScene');
         game.scene.launch('UIScene');
     };
 
     // Слушатель для возврата в меню после смерти
+    // Этот код больше не нужен, т.к. MenuScene теперь управляет отображением меню
+    /*
     game.events.on('showMenu', () => {
         menuContainer.classList.remove('hidden');
         scoreContainer.classList.add('hidden');
         controlsContainer.classList.add('hidden');
         bestScoreEl.textContent = localStorage.getItem('bestScore') || '0';
     });
+    */
 });

@@ -5,6 +5,15 @@
     }
 
     create() {
+        // при заходе в меню останавливаем и прячем UI
+        const ui = this.scene.get('UIScene');
+        if (ui) {
+            ui.hideUI();
+            if (this.scene.isActive('UIScene')) {
+                this.scene.stop('UIScene');
+            }
+        }
+
         // Получаем ссылки на HTML элементы
         this.menuContainer = document.getElementById('main-menu');
         this.skinInventory = document.getElementById('skinInventory');
@@ -23,7 +32,7 @@
 
         // Обработчик кнопки "Играть"
         startButton.onclick = () => {
-            this.menuContainer.classList.add('hidden');
+            document.getElementById('main-menu').style.display = 'none';
             // Запускаем игровую сцену и сцену интерфейса параллельно
             this.scene.start('GameScene');
             this.scene.launch('UIScene');
