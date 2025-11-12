@@ -1,7 +1,6 @@
 // js/main.js
 window.addEventListener('DOMContentLoaded', () => {
-    // --- Сначала настраиваем логику HTML меню ---
-
+    // --- 1. Находим все HTML-элементы ---
     const menuContainer = document.getElementById('main-menu');
     const skinInventory = document.getElementById('skinInventory');
     const startButton = document.getElementById('startBtn');
@@ -12,10 +11,35 @@ window.addEventListener('DOMContentLoaded', () => {
     const scoreContainer = document.getElementById('scoreContainer');
     const controlsContainer = document.getElementById('controls');
 
+    // --- 2. Настраиваем конфигурацию Phaser ---
+    const config = {
+        type: Phaser.AUTO,
+        width: window.innerWidth,
+        height: window.innerHeight,
+        parent: 'game',
+        backgroundColor: '#87ceeb', // Добавим фон по умолчанию
+        render: { willReadFrequently: true },
+        physics: {
+            default: 'matter',
+            matter: { gravity: { y: 1.1 }, debug: false }
+        },
+        scale: {
+            mode: Phaser.Scale.RESIZE,
+            autoCenter: Phaser.Scale.CENTER_BOTH
+        },
+        // Регистрируем все сцены, но не запускаем их автоматически
+        scene: [PreloaderScene, MenuScene, GameScene, UIScene]
+    };
+
+    // --- 3. Создаем экземпляр игры ---
+    const game = new Phaser.Game(config);
+
+    // --- 4. Назначаем обработчики событий для HTML-элементов ---
+    
     // Показываем лучший счет
     bestScoreEl.textContent = localStorage.getItem('bestScore') || '0';
 
-    // Обработчики инвентаря
+    // Логика инвентаря
     skinButton.onclick = () => {
         menuContainer.classList.add('hidden');
         skinInventory.classList.remove('hidden');
@@ -28,43 +52,28 @@ window.addEventListener('DOMContentLoaded', () => {
 
     skinChoiceButtons.forEach(button => {
         button.onclick = () => {
-            const colorValue = button.dataset.color;
-            localStorage.setItem('playerColor', colorValue);
+            localStorage.setItem('playerColor', button.dataset.color);
         };
     });
 
-    // --- Теперь настраиваем Phaser ---
-
-    const config = {
-        type: Phaser.AUTO,
-        width: window.innerWidth,
-        height: window.innerHeight,
-        parent: 'game',
-        render: { willReadFrequently: true },
-        physics: {
-            default: 'matter',
-            matter: { gravity: { y: 1.1 }, debug: false }
-        },
-        scale: {
-            mode: Phaser.Scale.RESIZE,
-            autoCenter: Phaser.Scale.CENTER_BOTH
-        },
-        scene: [PreloaderScene, MenuScene, GameScene, UIScene]
-    };
-
-    const game = new Phaser.Game(config);
-
-    // --- Логика старта игры ---
+    // Логика старта игры
     startButton.onclick = () => {
         // Скрываем меню и показываем игровой интерфейс
         menuContainer.classList.add('hidden');
+        skinInventory.classList.add('hidden'); // На всякий случай
         scoreContainer.classList.remove('hidden');
         controlsContainer.classList.remove('hidden');
 
-        // Запускаем игровую сцену
-        // Сцены уже созданы, мы просто "переключаемся" на нужную
-        game.scene.getScene('MenuScene').scene.start('GameScene');
-        game.scene.getScene('MenuScene').scene.launch('UIScene');
+        // Вот теперь ЗАПУСКАЕМ игровые сцены
+        game.scene.start('GameScene');
+        game.scene.launch('UIScene');
     };
-});
 
+    // Слушатель для возврата в меню после смерти
+    game.events.on('showMenu', () => {
+        menuContainer.classList.remove('hidden');
+        scoreContainer.classList.add('hidden');
+        controlsContainer.classList.add('hidden');
+        bestScoreEl.textContent = localStorage.getItem('bestScore') || '0';
+    });
+});
