@@ -209,7 +209,7 @@ managePlatforms() {
 death() {
     if (this.isDead) return;
     this.isDead = true;
-    console.log("death() вызвана"); // Проверка
+    
 
     // Прозрачность игрока (если поддерживается)
     if (this.player && this.player.setAlpha) {
@@ -236,7 +236,7 @@ death() {
 
     // Показываем экран смерти
     deathScreen.classList.remove('hidden');
-    console.log("death-screen показан");
+    
 
     // Слушатель кнопки "Начать заново"
     restartBtn.onclick = () => {
