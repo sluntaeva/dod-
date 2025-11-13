@@ -163,16 +163,41 @@ generateAdditionalPlatforms() {
 
 
 
-    addPlatform(x, y) {
-        const platformId = this.platformIdCounter++;
-        const platformSprite = this.add.rectangle(x, y, 200, 30, 0x00ff00);
-        const platformGameObject = this.matter.add.gameObject(platformSprite, {
-            isStatic: true, restitution: 0, friction: 1, label: `platform_${platformId}`
-        });
-        const platform = { id: platformId, sprite: platformSprite, body: platformGameObject.body };
-        this.platforms.push(platform);
-        return platform;
-    }
+addPlatform(x, y) {
+    const platformId = this.platformIdCounter++;
+
+    // 🎲 Случайная ширина
+    const minWidth = 100;
+    const maxWidth = 300;
+    const width = Phaser.Math.Between(minWidth, maxWidth);
+    const height = 30;
+
+    // 🎲 С вероятностью 20% — ломаемая платформа
+    const isBreakable = Math.random() < 0.2;
+
+    // Цвет: зелёный — обычная, красный — ломаемая
+    const color = isBreakable ? 0xff6666 : 0x00ff00;
+
+    const platformSprite = this.add.rectangle(x, y, width, height, color);
+
+    const platformGameObject = this.matter.add.gameObject(platformSprite, {
+        isStatic: true,
+        restitution: 0,
+        friction: 1,
+        label: `platform_${platformId}`
+    });
+
+    const platform = {
+        id: platformId,
+        sprite: platformSprite,
+        body: platformGameObject.body,
+        isBreakable
+    };
+
+    this.platforms.push(platform);
+    return platform;
+}
+
 
     handlePlayerMovement() {
         const isLeftPressed = this.cursors.left.isDown || this.keyA.isDown || this.leftPressed;
@@ -207,6 +232,7 @@ generateAdditionalPlatforms() {
         }
     }
 
+
 setupCollisionHandlers() {
     this.matter.world.on('collisionstart', (event) => {
         for (const pair of event.pairs) {
@@ -217,37 +243,75 @@ setupCollisionHandlers() {
             else if (pair.bodyB === playerBody) platformBody = pair.bodyA;
 
             if (platformBody && platformBody.label?.startsWith('platform_')) {
-                // Проверяем направление движения игрока
                 const vy = playerBody.velocity.y;
 
-                // Если игрок движется вверх — игнорируем столкновение
+                // Игнорируем столкновения при движении вверх
                 if (vy < 0) {
-                    pair.isActive = false; 
+                    pair.isActive = false;
                     continue;
                 }
 
-                // Проверяем, что столкновение происходит сверху платформы
-                const collisionNormal = pair.collision.normal;
                 const relativeY = playerBody.position.y - platformBody.position.y;
 
-                // Игрок сверху — разрешаем контакт и даём возможность прыгнуть
-        if (relativeY < 30 && playerBody.velocity.y > 0) {
-            this.canJump = true;
+                // Игрок сверху
+                if (relativeY < 30 && playerBody.velocity.y > 0) {
+                    this.canJump = true;
 
+                    // Находим платформу безопасно (по id тела)
+                    const platform = this.platforms.find(
+                        p => p.body && p.body.id === platformBody.id
+                    );
 
-                    const platform = this.platforms.find(p => p.body === platformBody);
-                    if (platform && !this.visitedPlatforms.has(platform.id)) {
-                        this.visitedPlatforms.add(platform.id);
-                        this.addScore(10);
+                    if (platform) {
+                        // 💥 Проверяем ломаемость
+                        if (platform.isBreakable) {
+                            this.breakPlatform(platform);
+                        }
+
+                        // Добавляем очки только если не посещал
+                        if (!this.visitedPlatforms.has(platform.id)) {
+                            this.visitedPlatforms.add(platform.id);
+                            this.addScore(10);
+                        }
                     }
                 } else {
-                    // Игрок сбоку или снизу — игнорируем столкновение
+                    // Игрок сбоку или снизу — игнорируем
                     pair.isActive = false;
                 }
             }
         }
     });
 }
+
+breakPlatform(platform) {
+    if (!platform || !platform.sprite || !platform.sprite.active) return;
+
+    const sprite = platform.sprite;
+
+    this.tweens.add({
+        targets: sprite,
+        alpha: { from: 1, to: 0.3 },
+        scaleX: { from: 1, to: 0.8 },
+        scaleY: { from: 1, to: 0.8 },
+        duration: 250,
+        yoyo: true,
+        repeat: 1,
+        onComplete: () => {
+            // 🔒 Проверяем, что объект ещё существует
+            if (sprite && sprite.active) {
+                // С небольшой задержкой убираем физику и спрайт
+                this.time.delayedCall(100, () => {
+                    if (sprite && sprite.active) sprite.destroy();
+                    this.matter.world.remove(platform.body);
+                    this.platforms = this.platforms.filter(p => p.id !== platform.id);
+                });
+            }
+        }
+    });
+}
+
+
+
 
 
     addScore(points) {
