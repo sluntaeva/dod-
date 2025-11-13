@@ -127,8 +127,27 @@ managePlatforms() {
         if (!platform || !platform.sprite || !platform.sprite.body) return false;
 
         if (platform.sprite.y > cameraBottom + 300) {
-            this.matter.world.remove(platform.sprite.body);
-            platform.sprite.destroy();
+            // Kill any active tweens on this platform before destroying
+            if (platform.breakTween && platform.breakTween.isPlaying()) {
+                platform.breakTween.stop();
+            }
+            
+            // Safely remove physics body
+            if (platform.sprite.body && this.matter && this.matter.world) {
+                try {
+                    this.matter.world.remove(platform.sprite.body);
+                } catch (e) {
+                    console.warn('Failed to remove platform body in managePlatforms:', e);
+                }
+            }
+            
+            // Safely destroy sprite
+            try {
+                platform.sprite.destroy();
+            } catch (e) {
+                console.warn('Failed to destroy platform sprite in managePlatforms:', e);
+            }
+            
             return false;
         }
 
@@ -287,8 +306,13 @@ breakPlatform(platform) {
     if (!platform || !platform.sprite || !platform.sprite.active) return;
 
     const sprite = platform.sprite;
+    
+    // Mark platform as breaking to prevent duplicate breaks
+    if (platform.isBreaking) return;
+    platform.isBreaking = true;
 
-    this.tweens.add({
+    // Store reference to tween so we can kill it if needed
+    const breakTween = this.tweens.add({
         targets: sprite,
         alpha: { from: 1, to: 0.3 },
         scaleX: { from: 1, to: 0.8 },
@@ -298,16 +322,36 @@ breakPlatform(platform) {
         repeat: 1,
         onComplete: () => {
             // 🔒 Проверяем, что объект ещё существует
-            if (sprite && sprite.active) {
-                // С небольшой задержкой убираем физику и спрайт
-                this.time.delayedCall(100, () => {
-                    if (sprite && sprite.active) sprite.destroy();
-                    this.matter.world.remove(platform.body);
-                    this.platforms = this.platforms.filter(p => p.id !== platform.id);
-                });
+            if (sprite && sprite.active && !sprite.scene?.sys?.isDestroyed) {
+                // Kill the tween first to prevent it from trying to access destroyed object
+                if (breakTween && breakTween.isPlaying()) {
+                    breakTween.stop();
+                }
+                
+                // Remove body from physics world first
+                if (platform.body && this.matter && this.matter.world) {
+                    try {
+                        this.matter.world.remove(platform.body);
+                    } catch (e) {
+                        console.warn('Failed to remove platform body:', e);
+                    }
+                }
+                
+                // Then destroy sprite
+                try {
+                    sprite.destroy();
+                } catch (e) {
+                    console.warn('Failed to destroy platform sprite:', e);
+                }
+                
+                // Finally remove from platforms array
+                this.platforms = this.platforms.filter(p => p.id !== platform.id);
             }
         }
     });
+    
+    // Store tween reference on platform for cleanup
+    platform.breakTween = breakTween;
 }
 
 
@@ -338,6 +382,8 @@ death() {
     if (this.isDead) return;
     this.isDead = true;
     
+    // Clean up all platform tweens to prevent errors
+    this.cleanupPlatforms();
 
     // Прозрачность игрока (если поддерживается)
     if (this.player && this.player.setAlpha) {
@@ -399,6 +445,27 @@ submitScoreToTelegram() {
     this.time.delayedCall(1000, () => {
         this.scene.restart();
     });
+}
+
+cleanupPlatforms() {
+    // Stop all platform break tweens before cleanup
+    if (this.platforms && this.platforms.length > 0) {
+        this.platforms.forEach(platform => {
+            if (platform.breakTween && platform.breakTween.isPlaying()) {
+                platform.breakTween.stop();
+            }
+        });
+    }
+    
+    // Kill all tweens in this scene
+    if (this.tweens) {
+        this.tweens.killAll();
+    }
+}
+
+shutdown() {
+    // Clean up tweens before scene shutdown
+    this.cleanupPlatforms();
 }
 
 
