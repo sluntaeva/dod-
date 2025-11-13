@@ -23,6 +23,11 @@ class GameScene extends Phaser.Scene {
         const playerStartX = 150;
         const playerStartY = 800;
         this.playerSprite = this.add.rectangle(playerStartX, playerStartY, 40, 60, this.playerColor);
+        this.arrow = this.add.triangle(
+        playerStartX, playerStartY - 60, // позиция над игроком
+        0, 30, 15, 0, -15, 0, 0xffcc00
+);
+this.arrow.setOrigin(0.5, 1);
         this.player = this.matter.add.gameObject(this.playerSprite, {
             restitution: 0.2,
             friction: 0.05,
@@ -68,7 +73,18 @@ class GameScene extends Phaser.Scene {
         this.checkDeathCondition();
         this.checkHeightScore();
         this.managePlatforms();
-    }
+        if (this.arrow && this.playerSprite) {
+    this.arrow.x = this.playerSprite.x;
+    this.arrow.y = this.playerSprite.y - 70;
+
+    // Поворот в зависимости от направления
+    const isLeftPressed = this.cursors.left.isDown || this.keyA.isDown;
+    const isRightPressed = this.cursors.right.isDown || this.keyD.isDown;
+
+    if (isLeftPressed) this.arrow.rotation = Phaser.Math.DegToRad(-150); // влево-вверх
+    else if (isRightPressed) this.arrow.rotation = Phaser.Math.DegToRad(-30); // вправо-вверх
+    else this.arrow.rotation = Phaser.Math.DegToRad(-90); // прямо вверх
+    }}
 
     // --- Методы вынесены для чистоты ---
 
@@ -106,24 +122,24 @@ managePlatforms() {
         return true;
     });
 }
-
-
-generateAdditionalPlatforms() {
-    const platformSpacingMin = 5;   // совсем близко
-    const platformSpacingMax = 10;   // немного дальше, но всё ещё рядом
-    const screenWidth = this.scale.width;
-
-    for (let i = 0; i < 3; i++) { // можно даже меньше платформ за раз
-        const gap = Phaser.Math.Between(platformSpacingMin, platformSpacingMax);
-        const newY = this.highestPlatformY + gap; // 👈 платформы появляются НИЖЕ
-        const newX = Phaser.Math.Between(100, screenWidth - 100);
-
-        const platform = this.createPlatform(newX, newY);
-        this.platforms.push(platform);
-
-        this.highestPlatformY = newY;
+    addPlatform(x, y) {
+        // добавь реализацию: создаёшь спрайт/физическое тело и пушишь в this.platforms
+        const sprite = this.matter.add.image(x, y, 'platform', null, { isStatic: true });
+        this.platforms.push({ sprite });
     }
-}
+
+ generateAdditionalPlatforms() {
+        const platformSpacingMin = 20;
+        const platformSpacingMax = 50;
+        const screenWidth = this.scale.width;
+        for (let i = 0; i < 3; i++) {
+            const gap = Phaser.Math.Between(platformSpacingMin, platformSpacingMax);
+            const newY = this.highestPlatformY - gap;
+            const newX = Phaser.Math.Between(100, screenWidth - 100);
+            this.addPlatform(newX, newY);
+            this.highestPlatformY = newY;
+        }
+    }
 
 
 
@@ -173,29 +189,47 @@ generateAdditionalPlatforms() {
         }
     }
 
-    setupCollisionHandlers() {
-        this.matter.world.on('collisionstart', (event) => {
-            for (const pair of event.pairs) {
-                const playerBody = this.player.body;
-                let platformBody = null;
-                if (pair.bodyA === playerBody) platformBody = pair.bodyB;
-                else if (pair.bodyB === playerBody) platformBody = pair.bodyA;
+setupCollisionHandlers() {
+    this.matter.world.on('collisionstart', (event) => {
+        for (const pair of event.pairs) {
+            const playerBody = this.player.body;
+            let platformBody = null;
 
-                if (platformBody && pair.collision.normal.y < 0) {
+            if (pair.bodyA === playerBody) platformBody = pair.bodyB;
+            else if (pair.bodyB === playerBody) platformBody = pair.bodyA;
+
+            if (platformBody && platformBody.label?.startsWith('platform_')) {
+                // Проверяем направление движения игрока
+                const vy = playerBody.velocity.y;
+
+                // Если игрок движется вверх — игнорируем столкновение
+                if (vy < 0) {
+                    pair.isActive = false; 
+                    continue;
+                }
+
+                // Проверяем, что столкновение происходит сверху платформы
+                const collisionNormal = pair.collision.normal;
+                const relativeY = playerBody.position.y - platformBody.position.y;
+
+                // Игрок сверху — разрешаем контакт и даём возможность прыгнуть
+                if (collisionNormal.y < 0 && relativeY < 30) {
                     this.canJump = true;
+
                     const platform = this.platforms.find(p => p.body === platformBody);
                     if (platform && !this.visitedPlatforms.has(platform.id)) {
                         this.visitedPlatforms.add(platform.id);
                         this.addScore(10);
                     }
+                } else {
+                    // Игрок сбоку или снизу — игнорируем столкновение
+                    pair.isActive = false;
                 }
             }
-        });
+        }
+    });
+}
 
-        this.matter.world.on('collisionend', (event) => {
-            // ... логика проверки, если игрок покинул платформу
-        });
-    }
 
     addScore(points) {
         this.score += points;
