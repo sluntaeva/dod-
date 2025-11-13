@@ -109,21 +109,23 @@ managePlatforms() {
 
 
 generateAdditionalPlatforms() {
-    const platformSpacingMin = 80;   // минимальное расстояние между платформами
-    const platformSpacingMax = 90;  // максимальное расстояние
+    const platformSpacingMin = 5;   // совсем близко
+    const platformSpacingMax = 10;   // немного дальше, но всё ещё рядом
     const screenWidth = this.scale.width;
 
-    for (let i = 0; i < 4; i++) {
+    for (let i = 0; i < 3; i++) { // можно даже меньше платформ за раз
         const gap = Phaser.Math.Between(platformSpacingMin, platformSpacingMax);
-        const newY = this.highestPlatformY - gap;
+        const newY = this.highestPlatformY + gap; // 👈 платформы появляются НИЖЕ
         const newX = Phaser.Math.Between(100, screenWidth - 100);
 
         const platform = this.createPlatform(newX, newY);
-
         this.platforms.push(platform);
+
         this.highestPlatformY = newY;
     }
 }
+
+
 
 
 
