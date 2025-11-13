@@ -88,13 +88,35 @@ this.arrow.setOrigin(0.5, 1);
 
     // --- Методы вынесены для чистоты ---
 
-    generateInitialPlatforms() {
-        for (let y = 700; y > -500; y -= 150 + Math.random() * 100) {
-            const x = 100 + Math.random() * 1800;
-            this.addPlatform(x, y);
-        }
-        this.highestPlatformY = -500;
+generateInitialPlatforms() {
+    // Настройки плотности
+    const startY = 700;               // нижняя платформа
+    const endY = -1000;               // насколько высоко генерировать
+    const spacingMin = 40;            // минимальный промежуток по высоте
+    const spacingMax = 80;            // максимальный промежуток (не слишком далеко)
+    const screenWidth = this.scale.width;
+
+    // Очищаем список перед генерацией (на всякий случай)
+    this.platforms = [];
+
+    let y = startY;
+
+    // Пока не достигнем верхней границы
+    while (y > endY) {
+        // Случайная позиция по X, чтобы платформы не шли строго по центру
+        const x = Phaser.Math.Between(100, screenWidth - 100);
+
+        // Создаём платформу
+        this.addPlatform(x, y);
+
+        // Двигаемся вверх с маленьким случайным шагом
+        y -= Phaser.Math.Between(spacingMin, spacingMax);
     }
+
+    // Запоминаем самую верхнюю платформу
+    this.highestPlatformY = endY;
+}
+
 
 managePlatforms() {
     // Динамическая генерация
@@ -129,8 +151,8 @@ managePlatforms() {
     }
 
  generateAdditionalPlatforms() {
-        const platformSpacingMin = 20;
-        const platformSpacingMax = 50;
+        const platformSpacingMin = 50;
+        const platformSpacingMax = 100;
         const screenWidth = this.scale.width;
         for (let i = 0; i < 3; i++) {
             const gap = Phaser.Math.Between(platformSpacingMin, platformSpacingMax);
