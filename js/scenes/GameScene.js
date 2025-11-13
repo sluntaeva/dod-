@@ -16,7 +16,7 @@ class GameScene extends Phaser.Scene {
         this.highestPlatformY = 800;
 
         // Настройка мира
-        this.matter.world.setBounds(0, 0, 2000, 10000, 64, false, true, true, false);
+        this.matter.world.setBounds(0, 0, 2000, 10000, 64, false, true, false, false);
 
 
         // Создание игрока
@@ -113,24 +113,21 @@ generateInitialPlatforms() {
 
 
 managePlatforms() {
-    // Динамическая генерация
-    if (this.playerSprite.y < this.highestPlatformY + 600) {
-        this.generateAdditionalPlatforms(this.highestPlatformY);
+    const cameraTop = this.cameras.main.scrollY;
+    
+    // Если игрок приближается к верхней границе мира — добавить платформ
+    if (this.playerSprite.y < this.highestPlatformY + 800) {
+        this.generateAdditionalPlatforms();
     }
 
     // Удаление старых платформ
     const cameraBottom = this.cameras.main.scrollY + this.cameras.main.height;
 
     this.platforms = this.platforms.filter(platform => {
-        // Проверяем, что платформа существует и не уничтожена
         if (!platform || !platform.sprite || !platform.sprite.body) return false;
 
         if (platform.sprite.y > cameraBottom + 300) {
-            // Сначала удаляем физическое тело, потом спрайт
-            if (platform.sprite.body) {
-                this.matter.world.remove(platform.sprite.body);
-            }
-
+            this.matter.world.remove(platform.sprite.body);
             platform.sprite.destroy();
             return false;
         }
@@ -138,24 +135,29 @@ managePlatforms() {
         return true;
     });
 }
+
     addPlatform(x, y) {
         // добавь реализацию: создаёшь спрайт/физическое тело и пушишь в this.platforms
         const sprite = this.matter.add.image(x, y, 'platform', null, { isStatic: true });
         this.platforms.push({ sprite });
     }
+generateAdditionalPlatforms() {
+    const platformSpacingMin = 100;
+    const platformSpacingMax = 180;
+    const screenWidth = this.scale.width;
 
- generateAdditionalPlatforms() {
-        const platformSpacingMin = 50;
-        const platformSpacingMax = 100;
-        const screenWidth = this.scale.width;
-        for (let i = 0; i < 3; i++) {
-            const gap = Phaser.Math.Between(platformSpacingMin, platformSpacingMax);
-            const newY = this.highestPlatformY - gap;
-            const newX = Phaser.Math.Between(100, screenWidth - 100);
-            this.addPlatform(newX, newY);
-            this.highestPlatformY = newY;
-        }
+    for (let i = 0; i < 5; i++) {
+        const gap = Phaser.Math.Between(platformSpacingMin, platformSpacingMax);
+        const newY = this.highestPlatformY - gap;
+
+        // Ограничим высоту, чтобы не выйти за пределы
+        if (newY < -10000) break;
+
+        const newX = Phaser.Math.Between(100, screenWidth - 100);
+        this.addPlatform(newX, newY);
+        this.highestPlatformY = newY;
     }
+}
 
 
 
@@ -229,8 +231,9 @@ setupCollisionHandlers() {
                 const relativeY = playerBody.position.y - platformBody.position.y;
 
                 // Игрок сверху — разрешаем контакт и даём возможность прыгнуть
-                if (collisionNormal.y < 0 && relativeY < 30) {
-                    this.canJump = true;
+        if (relativeY < 30 && playerBody.velocity.y > 0) {
+            this.canJump = true;
+
 
                     const platform = this.platforms.find(p => p.body === platformBody);
                     if (platform && !this.visitedPlatforms.has(platform.id)) {
