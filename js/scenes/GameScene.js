@@ -89,33 +89,27 @@ this.arrow.setOrigin(0.5, 1);
     // --- Методы вынесены для чистоты ---
 
 generateInitialPlatforms() {
-    // Настройки плотности
-    const startY = 700;               // нижняя платформа
-    const endY = -1000;               // насколько высоко генерировать
-    const spacingMin = 40;            // минимальный промежуток по высоте
-    const spacingMax = 80;            // максимальный промежуток (не слишком далеко)
+    const startY = 700;          // нижняя платформа
+    const endY = -1000;          // верхняя граница генерации
+    const spacingMin = 100;      // минимальное расстояние по Y
+    const spacingMax = 160;      // максимальное расстояние по Y
     const screenWidth = this.scale.width;
 
-    // Очищаем список перед генерацией (на всякий случай)
     this.platforms = [];
 
     let y = startY;
 
-    // Пока не достигнем верхней границы
     while (y > endY) {
-        // Случайная позиция по X, чтобы платформы не шли строго по центру
         const x = Phaser.Math.Between(100, screenWidth - 100);
-
-        // Создаём платформу
         this.addPlatform(x, y);
 
-        // Двигаемся вверх с маленьким случайным шагом
+        // немного больше шаг по высоте
         y -= Phaser.Math.Between(spacingMin, spacingMax);
     }
 
-    // Запоминаем самую верхнюю платформу
     this.highestPlatformY = endY;
 }
+
 
 
 managePlatforms() {
