@@ -243,13 +243,37 @@ addPlatform(x, y) {
         }
     }
 
-    jump() {
-        if (this.canJump && !this.isDead) {
-            this.matter.body.setVelocity(this.player.body, { x: this.player.body.velocity.x, y: -15 });
-            this.canJump = false;
-            // Анимации и эффекты прыжка...
-        }
+jump() {
+    if (this.canJump && !this.isDead) {
+
+        // Прыжковая деформация вниз
+        this.tweens.add({
+            targets: this.playerSprite,
+            scaleY: 0.8,
+            scaleX: 1.2,
+            duration: 80,
+            yoyo: false
+        });
+
+        // Полёт
+        this.matter.body.setVelocity(this.player.body, { 
+            x: this.player.body.velocity.x, 
+            y: -15 
+        });
+
+        this.canJump = false;
+
+        // Восстановление формы
+        this.tweens.add({
+            targets: this.playerSprite,
+            scaleY: 1,
+            scaleX: 1,
+            duration: 120,
+            delay: 80
+        });
     }
+}
+
 
 
 setupCollisionHandlers() {
@@ -275,6 +299,14 @@ setupCollisionHandlers() {
                 // Игрок сверху
                 if (relativeY < 30 && playerBody.velocity.y > 0) {
                     this.canJump = true;
+                    // Мягкое приземление
+                    this.tweens.add({
+                        targets: this.playerSprite,
+                        scaleY: 0.8,
+                        scaleX: 1.1,
+                        duration: 70,
+                        yoyo: true
+                    });
 
                     // Находим платформу безопасно (по id тела)
                     const platform = this.platforms.find(
@@ -306,53 +338,51 @@ breakPlatform(platform) {
     if (!platform || !platform.sprite || !platform.sprite.active) return;
 
     const sprite = platform.sprite;
-    
-    // Mark platform as breaking to prevent duplicate breaks
+
+    // Чтобы не ломалась дважды
     if (platform.isBreaking) return;
     platform.isBreaking = true;
 
-    // Store reference to tween so we can kill it if needed
+    // Вспышка камеры
+    this.cameras.main.flash(120, 255, 120, 120);
+
+    // Тряска камеры
+    this.cameras.main.shake(100, 0.002);
+
+    // Частички — обломки
+    const particles = this.add.particles(0xffffff);
+    const emitter = particles.createEmitter({
+        x: sprite.x,
+        y: sprite.y,
+        speed: { min: -100, max: 100 },
+        scale: { start: 0.3, end: 0 },
+        gravityY: 300,
+        lifespan: 400,
+        blendMode: 'ADD'
+    });
+
+    // Исчезновение платформы
     const breakTween = this.tweens.add({
         targets: sprite,
-        alpha: { from: 1, to: 0.3 },
-        scaleX: { from: 1, to: 0.8 },
-        scaleY: { from: 1, to: 0.8 },
+        alpha: 0,
+        scaleX: 1.5,
+        scaleY: 0.5,
+        angle: 20,
         duration: 250,
-        yoyo: true,
-        repeat: 1,
         onComplete: () => {
-            // 🔒 Проверяем, что объект ещё существует
-            if (sprite && sprite.active && !sprite.scene?.sys?.isDestroyed) {
-                // Kill the tween first to prevent it from trying to access destroyed object
-                if (breakTween && breakTween.isPlaying()) {
-                    breakTween.stop();
-                }
-                
-                // Remove body from physics world first
-                if (platform.body && this.matter && this.matter.world) {
-                    try {
-                        this.matter.world.remove(platform.body);
-                    } catch (e) {
-                        console.warn('Failed to remove platform body:', e);
-                    }
-                }
-                
-                // Then destroy sprite
-                try {
-                    sprite.destroy();
-                } catch (e) {
-                    console.warn('Failed to destroy platform sprite:', e);
-                }
-                
-                // Finally remove from platforms array
-                this.platforms = this.platforms.filter(p => p.id !== platform.id);
-            }
+            emitter.stop();
+            particles.destroy();
+
+            if (platform.body) this.matter.world.remove(platform.body);
+            sprite.destroy();
+
+            this.platforms = this.platforms.filter(p => p.id !== platform.id);
         }
     });
-    
-    // Store tween reference on platform for cleanup
+
     platform.breakTween = breakTween;
 }
+
 
 
 
@@ -381,7 +411,39 @@ breakPlatform(platform) {
 death() {
     if (this.isDead) return;
     this.isDead = true;
-    
+    // Замедление
+this.tweens.add({
+    targets: this.playerSprite,
+    alpha: 0,
+    scaleX: 2,
+    scaleY: 2,
+    angle: 180,
+    duration: 400,
+    ease: 'Cubic.easeIn'
+});
+
+// Частички смерти
+const deathParts = this.add.particles(0xff3366);
+deathParts.createEmitter({
+    x: this.playerSprite.x,
+    y: this.playerSprite.y,
+    speed: { min: -200, max: 200 },
+    lifespan: 600,
+    scale: { start: 0.7, end: 0 },
+    gravityY: 400,
+    blendMode: 'ADD'
+});
+// Частички смерти
+const deathParts = this.add.particles(0xff3366);
+deathParts.createEmitter({
+    x: this.playerSprite.x,
+    y: this.playerSprite.y,
+    speed: { min: -200, max: 200 },
+    lifespan: 600,
+    scale: { start: 0.7, end: 0 },
+    gravityY: 400,
+    blendMode: 'ADD'
+});
     // Clean up all platform tweens to prevent errors
     this.cleanupPlatforms();
 
