@@ -411,53 +411,31 @@ breakPlatform(platform) {
 death() {
     if (this.isDead) return;
     this.isDead = true;
-    // Замедление
-this.tweens.add({
-    targets: this.playerSprite,
-    alpha: 0,
-    scaleX: 2,
-    scaleY: 2,
-    angle: 180,
-    duration: 400,
-    ease: 'Cubic.easeIn'
-});
 
-// Частички смерти
-const deathParts = this.add.particles(0xff3366);
-deathParts.createEmitter({
-    x: this.playerSprite.x,
-    y: this.playerSprite.y,
-    speed: { min: -200, max: 200 },
-    lifespan: 600,
-    scale: { start: 0.7, end: 0 },
-    gravityY: 400,
-    blendMode: 'ADD'
-});
-// Частички смерти
-const deathParts = this.add.particles(0xff3366);
-deathParts.createEmitter({
-    x: this.playerSprite.x,
-    y: this.playerSprite.y,
-    speed: { min: -200, max: 200 },
-    lifespan: 600,
-    scale: { start: 0.7, end: 0 },
-    gravityY: 400,
-    blendMode: 'ADD'
-});
-    // Clean up all platform tweens to prevent errors
+    // Останавливаем платформенные твины
     this.cleanupPlatforms();
 
-    // Прозрачность игрока (если поддерживается)
-    if (this.player && this.player.setAlpha) {
-        this.player.setAlpha(0.3);
-    }
+    // Останавливаем физику, НО НЕ выключаем мир!
+    this.matter.world.pause();
 
-    // Остановка физики
-    if (this.matter && this.matter.world) {
-        this.matter.world.enabled = false; // вместо pause(), надёжнее
-    }
+    // Прячем стрелку, чтобы не мешала
+    if (this.arrow) this.arrow.visible = false;
 
-    // DOM элементы
+    // Эффект смерти (но НЕ destroy!)
+    this.tweens.add({
+        targets: this.playerSprite,
+        alpha: 0,
+        scaleX: 1.5,
+        scaleY: 1.5,
+        angle: 180,
+        duration: 400,
+        ease: 'Cubic.easeIn',
+        onComplete: () => {
+            if (this.playerSprite) this.playerSprite.visible = false;
+        }
+    });
+
+    // ------- UI -------
     const deathScreen = document.getElementById('death-screen');
     const finalScoreValue = document.getElementById('finalScoreValue');
     const restartBtn = document.getElementById('restartBtn');
@@ -467,31 +445,30 @@ deathParts.createEmitter({
         return;
     }
 
-    // Обновляем счёт
     finalScoreValue.textContent = this.score || 0;
-
-    // Показываем экран смерти
     deathScreen.classList.remove('hidden');
-    
 
-    // Слушатель кнопки "Начать заново"
+    // ------- РЕСТАРТ -------
     restartBtn.onclick = () => {
-        console.log("Нажата кнопка 'Начать заново'");
+
+        // Защита от двойного нажатия
+        restartBtn.onclick = null;
+
         deathScreen.classList.add('hidden');
-        if (this.player && this.player.setAlpha) {
-            this.player.setAlpha(1);
-        }
-        this.isDead = false;
 
         // Возвращаем физику
-        if (this.matter && this.matter.world) {
-            this.matter.world.enabled = true;
-        }
+        this.matter.world.resume();
 
-        // Перезапуск сцены
-        this.scene.restart();
+        // ТУТ САМОЕ ВАЖНОЕ: перезапуск безопасный
+        this.time.delayedCall(50, () => {
+            console.log("Перезапуск сцены...");
+            this.scene.stop('GameScene');
+            this.scene.start('GameScene');
+        });
     };
 }
+
+
 
 
 
