@@ -67,14 +67,4 @@ window.addEventListener('DOMContentLoaded', () => {
         game.scene.launch('UIScene');
     };
 
-    // Слушатель для возврата в меню после смерти
-    // Этот код больше не нужен, т.к. MenuScene теперь управляет отображением меню
-    /*
-    game.events.on('showMenu', () => {
-        menuContainer.classList.remove('hidden');
-        scoreContainer.classList.add('hidden');
-        controlsContainer.classList.add('hidden');
-        bestScoreEl.textContent = localStorage.getItem('bestScore') || '0';
-    });
-    */
 });
