@@ -4,57 +4,43 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Платформер - Прыжки вверх</title>
-    <!-- Подключаем библиотеку Phaser -->
-    <script src="https://cdn.jsdelivr.net/npm/phaser@3.55.2/dist/phaser.js"></script>
-    <!-- Подключаем наш файл со стилями -->
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.55.2/dist/phaser.min.js"></script>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div id="game"></div>
-    
-<div id="main-menu">
-    <button id="startBtn">СТАРТ</button>
-    <button id="skinBtn">СКИН</button>
-</div>
+
+    <div id="main-menu">
+        <button id="startBtn">СТАРТ</button>
+        <button id="skinBtn">СКИН</button>
+    </div>
 
     <div id="scoreContainer" class="hidden">
         <div>Очки: <span id="score">0</span></div>
         <div>Рекорд: <span id="bestScoreValue">0</span></div>
     </div>
-    
-    <div id="controls" class="hidden">
-        <button id="left">◄</button>
-        <button id="jump">▲</button>
-        <button id="right">►</button>
-    </div>
-<div id="skinInventory" class="hidden">
-    <div class="inventory-header">Выберите скин</div>
-    <div class="skin-options">
-        <!-- Кнопки выбора скина с цветом фона -->
-        <button class="skin-choice" data-color="0xff3366" style="background-color: #ff3366;"></button>
-        <button class="skin-choice" data-color="0x33ff66" style="background-color: #33ff66;"></button>
-        <button class="skin-choice" data-color="0x3366ff" style="background-color: #3366ff;"></button>
-        <button class="skin-choice" data-color="0xffff33" style="background-color: #ffff33;"></button>
-        <button class="skin-choice" data-color="0xffffff" style="background-color: #ffffff;"></button>
-    </div>
-    <button id="closeInventoryBtn">Закрыть</button>
+<div id="controls">
+    <button id="btnLeft">◀</button>
+    <button id="btnJump">▲</button>
+    <button id="btnRight">▶</button>
 </div>
-<div id="death-screen" class="hidden">
-  <div class="death-content">
-    <h2>Вы проиграли 😢</h2>
-    <p>Ваш счёт: <span id="finalScoreValue">0</span></p>
-    <button id="restartBtn">Начать заново</button>
-  </div>
-</div>
- <!-- Подключаем наш файл со скриптом (ВАЖНО: в самом конце body ) -->
-    <script src="https://cdn.jsdelivr.net/npm/phaser@3.55.2/dist/phaser.min.js"></script>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
-  <script src="js/scenes/PreloaderScene.js"></script>
-    <script src="js/scenes/MenuScene.js"></script>
+
+    <div id="skinInventory" class="hidden">
+        <div class="inventory-header">Выберите скин</div>
+        <div class="skin-options">
+            <button class="skin-choice" data-color="0xff3366" style="background-color: #ff3366;"></button>
+            <button class="skin-choice" data-color="0x33ff66" style="background-color: #33ff66;"></button>
+            <button class="skin-choice" data-color="0x3366ff" style="background-color: #3366ff;"></button>
+            <button class="skin-choice" data-color="0xffff33" style="background-color: #ffff33;"></button>
+            <button class="skin-choice" data-color="0xffffff" style="background-color: #ffffff;"></button>
+        </div>
+        <button id="closeInventoryBtn">Закрыть</button>
+    </div>
+
+    <!-- Скрипты -->
     <script src="js/scenes/GameScene.js"></script>
     <script src="js/scenes/UIScene.js"></script>
     <script src="js/main.js"></script>
 </body>
 </html>
-

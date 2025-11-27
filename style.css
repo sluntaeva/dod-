@@ -234,6 +234,12 @@ body {
     transform: scale(1.1);
     box-shadow: 0 10px 15px rgba(255, 160, 255, 0.5);
 }
+canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 0;
+}
 
 /* --- Экран проигрыша --- */
 #death-screen {
