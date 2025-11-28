@@ -10,11 +10,22 @@ body {
     background: radial-gradient(circle at center, #ffe1ef 0%, #b5d9ff 100%);
 }
 
+/* --- Главное меню --- */
+#main-menu {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+}
+
 /* --- Кнопки --- */
 #startBtn, #skinBtn {
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
     padding: 22px 55px;
     font-size: 28px;
     font-weight: 800;
@@ -22,31 +33,21 @@ body {
     border: none;
     border-radius: 25px;
     cursor: pointer;
-    z-index: 1000;
     background: linear-gradient(145deg, #ff8ad4, #89c9ff);
     box-shadow: 0 8px 0 #e36abf, inset 0 -4px 6px rgba(255,255,255,0.4);
     transition: transform 0.15s ease, box-shadow 0.2s ease, filter 0.3s;
     text-shadow: 0 2px 4px rgba(0,0,0,0.2);
-}
-
-#startBtn {
-    top: 45%;
-    transform: translate(-50%, -50%);
-}
-
-#skinBtn {
-    top: 60%;
-    transform: translate(-50%, -50%);
+    margin: 15px 0;
 }
 
 #startBtn:hover, #skinBtn:hover {
-    transform: translate(-50%, -50%) scale(1.08);
+    transform: scale(1.08);
     box-shadow: 0 10px 0 #f76ed4, 0 0 25px rgba(255, 182, 255, 0.8);
     filter: brightness(1.1);
 }
 
 #startBtn:active, #skinBtn:active {
-    transform: translate(-50%, -50%) scale(0.92);
+    transform: scale(0.92);
     box-shadow: 0 5px 0 #d454b6;
 }
 
