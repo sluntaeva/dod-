@@ -39,6 +39,8 @@ this.arrow.setOrigin(0.5, 1);
         const startPlatform = this.addPlatform(playerStartX, playerStartY + 100);
         this.visitedPlatforms.add(startPlatform.id);
         this.generateInitialPlatforms();
+        this.generateInitialEnemies();
+
 
         // Камера
         this.cameras.main.startFollow(this.playerSprite, true, 0.1, 0.1);
@@ -179,6 +181,33 @@ generateAdditionalPlatforms() {
 }
 
 
+
+addEnemyOnPlatform(platform) {
+    const enemyX = platform.sprite.x;
+    const enemyY = platform.sprite.y - 25;
+
+    // КРУГ
+    const radius = 15;
+    const enemy = this.add.circle(enemyX, enemyY, radius, 0x000000);
+
+    const enemyBody = this.matter.add.gameObject(enemy, {
+        shape: 'circle',
+        isStatic: false,
+        friction: 0,
+        frictionAir: 0.001,
+        restitution: 0,
+        label: 'enemy'
+    });
+
+    enemy.platform = platform;
+    enemy.speed = Phaser.Math.Between(1, 2);   // скорость 1–2
+    enemy.direction = Math.random() < 0.5 ? -1 : 1; // направление
+
+    if (!this.enemies) this.enemies = [];
+    this.enemies.push(enemy);
+
+    return enemy;
+}
 
 
 
@@ -430,6 +459,26 @@ death() {
         this.scene.restart();
     };
 }
+generateInitialEnemies() {
+    this.platforms.forEach(platform => {
+        if (Math.random() < 0.3) this.addEnemyOnPlatform(platform);
+    });
+}
+generateInitialEnemies(minDistance = 200) {
+    const enemyPositions = [];
+
+    this.platforms.forEach(platform => {
+        if (Math.random() < 0.3) {
+            const y = platform.y;
+
+            if (enemyPositions.every(p => Math.abs(p - y) > minDistance)) {
+                this.addEnemyOnPlatform(platform);
+                enemyPositions.push(y);
+            }
+        }
+    });
+}
+
 
 
 
