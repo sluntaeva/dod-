@@ -1,0 +1,12 @@
+{
+  "name": "platform-jumper-game",
+  "version": "1.0.0",
+  "description": "Игра с прыжками по платформам и системой подсчета очков",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}

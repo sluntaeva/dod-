@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Платформер - Прыжки вверх</title>
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.55.2/dist/phaser.min.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="game"></div>
+
+    <div id="main-menu">
+        <button id="startBtn">СТАРТ</button>
+        <button id="skinBtn">СКИН</button>
+    </div>
+
+    <div id="scoreContainer" class="hidden">
+        <div>Очки: <span id="score">0</span></div>
+        <div>Рекорд: <span id="bestScoreValue">0</span></div>
+    </div>
+<div id="controls">
+    <button id="leftBtn">◀</button>
+    <button id="jumpBtn">▲</button>
+    <button id="rightBtn">▶</button>
+</div>
+
+
+    <div id="death-screen" class="hidden">
+        <div class="death-screen-content">
+            <h2>Конец!</h2>
+            <div class="final-score">баллы: <span id="finalScoreValue">0</span></div>
+            <button id="restartBtn">ЗАНОВО</button>
+        </div>
+    </div>
+
+    <div id="skinInventory" class="hidden">
+        <div class="inventory-header">Выберите скин</div>
+        <div class="skin-options">
+            <button class="skin-choice" data-color="0xff3366" style="background-color: #ff3366;"></button>
+            <button class="skin-choice" data-color="0x33ff66" style="background-color: #33ff66;"></button>
+            <button class="skin-choice" data-color="0x3366ff" style="background-color: #3366ff;"></button>
+            <button class="skin-choice" data-color="0xffff33" style="background-color: #ffff33;"></button>
+            <button class="skin-choice" data-color="0xffffff" style="background-color: #ffffff;"></button>
+        </div>
+        <button id="closeInventoryBtn">Закрыть</button>
+    </div>
+
+    <!-- Менеджеры -->
+    <script src="js/managers/DifficultyManager.js"></script>
+    <script src="js/managers/ScoreManager.js"></script>
+    <script src="js/managers/PlayerManager.js"></script>
+    <script src="js/managers/PlatformManager.js"></script>
+    <script src="js/managers/EnemyManager.js"></script>
+    <script type="module" src="GameSceneRefactored.js"></script>
+
+    
+    <!-- Сцены -->
+    <script src="js/scenes/GameSceneRefactored.js"></script>
+    <script src="js/scenes/UIScene.js"></script>
+    
+    <!-- Основной скрипт -->
+    <script src="js/main.js"></script>
+</body>
+</html>
