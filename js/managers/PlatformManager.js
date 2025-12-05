@@ -15,9 +15,8 @@
  */
 
 class PlatformManager {
-    constructor(scene, difficultyManager) {
+    constructor(scene, difficultyManager, config = {}) {
         this.scene = scene;
-        this.difficultyManager = difficultyManager;
         this.difficultyManager = difficultyManager;
 
         // Configurable parameters
