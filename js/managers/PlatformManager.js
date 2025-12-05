@@ -86,6 +86,48 @@ class PlatformManager {
         return this.platforms.find(p => p.id === id) || null;
     }
 
+    handlePlatformCollision(platformIdentifier) {
+        // Find platform by various possible identifiers
+        let platform = null;
+        
+        if (typeof platformIdentifier === 'string' && platformIdentifier.startsWith('platform_')) {
+            // Label format: "platform_123"
+            const id = parseInt(platformIdentifier.replace('platform_', ''));
+            platform = this.platforms.find(p => p.id === id);
+        } else if (typeof platformIdentifier === 'number') {
+            // Direct platform ID
+            platform = this.platforms.find(p => p.id === platformIdentifier);
+        } else if (typeof platformIdentifier === 'object') {
+            // Body object passed directly
+            platform = this.platforms.find(p => p.body === platformIdentifier);
+        }
+
+        if (!platform) {
+            console.warn('PlatformManager: Could not find platform for identifier:', platformIdentifier);
+            return null;
+        }
+
+        // Check if this is a new platform visit
+        const isNewPlatform = !this.visitedPlatforms.has(platform.id);
+        if (isNewPlatform) {
+            this.visitedPlatforms.add(platform.id);
+        }
+
+        // Handle breakable platform
+        if (platform.isBreakable) {
+            this._breakPlatform(platform);
+        }
+
+        // Calculate points
+        const points = isNewPlatform ? (platform.isMoving ? 15 : 10) : 0;
+
+        return {
+            platform: platform,
+            isNewPlatform: isNewPlatform,
+            points: points
+        };
+    }
+
     cleanup() {
         // Remove collision listener
         this.scene.matter.world.off('collisionstart', this._onCollisionStart);
@@ -187,7 +229,10 @@ class PlatformManager {
                 platform.body = go.body;
             } else {
                 // update body position
-                this.scene.matter.setPosition(platform.body, platform.sprite.x, platform.sprite.y);
+                Phaser.Physics.Matter.Matter.Body.setPosition(platform.body, {
+                    x: platform.sprite.x,
+                    y: platform.sprite.y
+                });
             }
 
             platform.isBreaking = false;
@@ -308,7 +353,10 @@ class PlatformManager {
             // Sync physics body safely
             try {
                 if (platform.body && this.scene.matter) {
-                    this.scene.matter.setPosition(platform.body, platform.sprite.x, platform.sprite.y);
+                    Phaser.Physics.Matter.Matter.Body.setPosition(platform.body, {
+                        x: platform.sprite.x,
+                        y: platform.sprite.y
+                    });
                 }
             } catch (e) {
                 console.warn('PlatformManager: failed to set body position', e);
@@ -422,7 +470,7 @@ class PlatformManager {
                 // identify the other body
                 const other = bodyA === this._playerBody ? bodyB : bodyA;
                 // find the platform object
-                const platform = this.platforms.find(p => p.body === other || p.body === other);
+                const platform = this.platforms.find(p => p.body === other);
                 if (platform) {
                     const isNew = !this.visitedPlatforms.has(platform.id);
                     if (isNew) this.visitedPlatforms.add(platform.id);

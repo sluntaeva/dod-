@@ -135,7 +135,7 @@ class GameSceneRefactored extends Phaser.Scene {
             this.playerManager.enableJump();
             
             // Handle platform scoring and effects
-            const result = this.platformManager.handlePlatformCollision(platformBody.id);
+            const result = this.platformManager.handlePlatformCollision(platformBody.label);
             
             if (result) {
                 // Add score for new platforms
