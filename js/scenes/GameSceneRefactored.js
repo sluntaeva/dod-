@@ -166,9 +166,9 @@ class GameSceneRefactored extends Phaser.Scene {
         const result = this.enemyManager.handleEnemyCollision(enemyBody.id);
         
         if (result) {
-            // Player takes damage and dies (can be modified for health system)
-            this.playerManager.die();
-            this.onPlayerDeath();
+            // Enemy is destroyed on collision but player doesn't die
+            // Player can only die from falling off the platform
+            console.log('Enemy collision - enemy destroyed, player safe');
         }
     }
 
